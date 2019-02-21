@@ -29,6 +29,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, UIGestureRecognize
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         setUpFetchResultController()
     }
     
@@ -111,14 +112,14 @@ class MapViewController: UIViewController, MKMapViewDelegate, UIGestureRecognize
     
     // Set touch delegate for long touch and tap gesture
     func setMapview(){
-        let lpgr = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress(gestureReconizer:)))
-        lpgr.minimumPressDuration = 0.5
-        lpgr.delaysTouchesBegan = true
-        lpgr.delegate = self
-        self.mapView.addGestureRecognizer(lpgr)
-        let lpgrt = UITapGestureRecognizer(target: self, action: #selector(self.handlePress(gestureReconizer:)))
-        lpgrt.delegate = self
-        self.mapView.addGestureRecognizer(lpgrt)
+        let longPressGestureRecognized = UILongPressGestureRecognizer(target: self, action: #selector(self.handleLongPress(gestureReconizer:)))
+        longPressGestureRecognized.minimumPressDuration = 0.5
+        longPressGestureRecognized.delaysTouchesBegan = true
+        longPressGestureRecognized.delegate = self
+        self.mapView.addGestureRecognizer(longPressGestureRecognized)
+        let tapGestureRecognized = UITapGestureRecognizer(target: self, action: #selector(self.handlePress(gestureReconizer:)))
+        tapGestureRecognized.delegate = self
+        self.mapView.addGestureRecognizer(tapGestureRecognized)
         checkIfFirstLaunch()
     }
     
@@ -201,12 +202,12 @@ class MapViewController: UIViewController, MKMapViewDelegate, UIGestureRecognize
     
     // open View Controller segue for the selected annotation
     func openSegueForAnnotation(_ coord1:CLLocationCoordinate2D, _ annotation: MKAnnotation){
-        let loc1 = CLLocation(latitude: coord1.latitude, longitude: coord1.longitude)
+        let locationFromTouch = CLLocation(latitude: coord1.latitude, longitude: coord1.longitude)
         var distances = [CLLocationDistance]()
         
         for location in fetchedResultController.sections![0].objects! {
             let loc = location as! Location
-            distances.append(loc1.distance(from: CLLocation(latitude:loc.latitude, longitude: loc.longitude)))
+            distances.append(locationFromTouch.distance(from: CLLocation(latitude:loc.latitude, longitude: loc.longitude)))
         }
         let closest = distances.min()//shortest distance
         let position = distances.index(of: closest!)//index of shortest distance

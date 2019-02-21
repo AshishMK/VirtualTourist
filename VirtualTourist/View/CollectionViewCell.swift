@@ -11,6 +11,7 @@ import UIKit
 class CollectionViewCell: UICollectionViewCell {
     // Outlets
     @IBOutlet weak var img: UIImageView!
+    @IBOutlet weak var selectionView: UIView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     override func prepareForReuse() {
         super.prepareForReuse()

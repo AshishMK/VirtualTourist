@@ -92,6 +92,11 @@
                                                         <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" hidesWhenStopped="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="hfH-IE-pSt">
                                                             <rect key="frame" x="32" y="32" width="37" height="37"/>
                                                         </activityIndicatorView>
+                                                        <view hidden="YES" alpha="0.80000000000000004" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hkU-hO-jkL">
+                                                            <rect key="frame" x="0.0" y="0.0" width="135" height="135"/>
+                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                        </view>
                                                     </subviews>
                                                 </view>
                                                 <constraints>
@@ -101,6 +106,7 @@
                                                 <connections>
                                                     <outlet property="activityIndicator" destination="hfH-IE-pSt" id="r77-2V-z5Z"/>
                                                     <outlet property="img" destination="xpx-2E-b04" id="a4O-Sy-lI4"/>
+                                                    <outlet property="selectionView" destination="hkU-hO-jkL" id="L3W-2K-ltd"/>
                                                 </connections>
                                             </collectionViewCell>
                                         </cells>

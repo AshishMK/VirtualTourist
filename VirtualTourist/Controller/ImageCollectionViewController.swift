@@ -23,7 +23,8 @@ class ImageCollectionViewController: UIViewController {
     var backgroundContext : NSManagedObjectContext!
     var location: Location!
     var fetchedResultController : NSFetchedResultsController<Images>!
-    var collection: UIBarButtonItem!
+    var addRemoveCollectionBarButton: UIBarButtonItem!
+    var selectedImages = [IndexPath]()
     
     // MARK: Lifecycle Methods
     override func viewDidLoad() {
@@ -79,9 +80,9 @@ class ImageCollectionViewController: UIViewController {
         
         if let response = response {
             if response.photos.photo.count == 0 {
-            showFailure(message: "No item found")
-            return
-        }
+                showFailure(message: "No item found")
+                return
+            }
             let locationID =  location.objectID
             let backgroundContext : NSManagedObjectContext! = dataController.backgroundContext
             backgroundContext.perform {
@@ -107,7 +108,7 @@ class ImageCollectionViewController: UIViewController {
         else{
             activityIndicator.stopAnimating()
         }
-        collection.isEnabled = !showIndicator
+        addRemoveCollectionBarButton.isEnabled = !showIndicator
     }
     
     // Show error alert on the Image collection request failure
@@ -148,26 +149,45 @@ extension ImageCollectionViewController{
     /// text view's keyboard that also displays these items.
     func makeToolbarItems() -> [UIBarButtonItem] {
         let space = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        collection = UIBarButtonItem(title: "New Collection", style: .plain, target: self, action: #selector(newCollectionTapped(sender:)))
-        return [space,collection,space]
+        addRemoveCollectionBarButton = UIBarButtonItem(title: "New Collection", style: .plain, target: self, action: #selector(newCollectionTapped(sender:)))
+        return [space,addRemoveCollectionBarButton,space]
     }
     
     //MARK: Helper method
     // Delete old images collection and call API for new images collection
     @IBAction func newCollectionTapped(sender: Any) {
-        for managedObject in self.fetchedResultController.sections![0].objects!
-        {
-            let managedObjectData = managedObject as! Images
-            let id = managedObjectData.objectID
-            backgroundContext.perform {
-                let backgroundObject = self.backgroundContext.object(with: id) as! Images
-                self.backgroundContext.delete(backgroundObject)
-                try? self.backgroundContext.save()
+        if selectedImages.count > 0 {
+            for indexPath in selectedImages
+            {
+                   let aPhoto = fetchedResultController.object(at: indexPath)
+                let id = aPhoto.objectID
+                backgroundContext.perform {
+                    let backgroundObject = self.backgroundContext.object(with: id) as! Images
+                    self.backgroundContext.delete(backgroundObject)
+                    try? self.backgroundContext.save()
+                }
+                
             }
+            selectedImages.removeAll()
             
+            addRemoveCollectionBarButton.title =  "New Collection"
         }
-        setActivityIndicator(true)
-        Client.getImages(latitude: location.latitude, longitude: location.longitude, Int(UInt32(location.page)) + 1  , completion: handleResponse(response:error:))
+            
+        else {
+            for managedObject in self.fetchedResultController.sections![0].objects!
+            {
+                let managedObjectData = managedObject as! Images
+                let id = managedObjectData.objectID
+                backgroundContext.perform {
+                    let backgroundObject = self.backgroundContext.object(with: id) as! Images
+                    self.backgroundContext.delete(backgroundObject)
+                    try? self.backgroundContext.save()
+                }
+                
+            }
+            setActivityIndicator(true)
+            Client.getImages(latitude: location.latitude, longitude: location.longitude, Int(UInt32(location.page)) + 1  , completion: handleResponse(response:error:))
+        }
     }
     
     /// Configure the current toolbar
@@ -195,7 +215,7 @@ extension ImageCollectionViewController : MKMapViewDelegate {
         if pinView == nil {
             pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
             pinView!.canShowCallout = true
-        
+            
             pinView!.pinTintColor = .red
         }
         else {
@@ -208,7 +228,27 @@ extension ImageCollectionViewController : MKMapViewDelegate {
 
 // -------------------------------------------------------------------------
 // MARK : UICollectionViewDelegate
-extension ImageCollectionViewController : UICollectionViewDelegate, UICollectionViewDataSource{
+extension ImageCollectionViewController : UICollectionViewDelegate, UICollectionViewDataSource {
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let aPhoto = fetchedResultController.object(at: indexPath)
+        // check if image is already saved in coredata use that
+        if let _ = aPhoto.image {
+            
+            if selectedImages.contains(indexPath) {
+                selectedImages.remove(at: selectedImages.index(of: indexPath)!)
+            }
+            else {
+                selectedImages.append(indexPath)
+            }
+            
+            addRemoveCollectionBarButton.title =  selectedImages.count > 0 ? "Remove Selected Pictures" : "New Collection"
+            collectionView.reloadItems(at: [indexPath])
+        }
+        
+    }
+    
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return fetchedResultController.sections?[section].numberOfObjects ?? 0
     }
@@ -244,8 +284,12 @@ extension ImageCollectionViewController : UICollectionViewDelegate, UICollection
             }
             }
         }
+        cell.selectionView.isHidden = !selectedImages.contains(indexPath)
+        
+        
         return cell
     }
+    
     
     
 }
